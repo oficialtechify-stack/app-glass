@@ -765,47 +765,111 @@
                 statusText.textContent = 'Buscando...';
                 btPulse.className = 'bt-pulse scanning';
 
-                // Scan filter matching prefix "AiMB"
+                // Build a list of potential custom service UUIDs we want to access.
+                // Since Web Bluetooth requires declaring services in optionalServices to access them,
+                // we include all common standard and custom 128-bit/16-bit BLE services.
+                const optionalServices = [
+                    PRIMARY_SERVICE_UUID,
+                    '0000ffe0-0000-1000-8000-00805f9b34fb',
+                    '0000ffe1-0000-1000-8000-00805f9b34fb',
+                    '0000fff0-0000-1000-8000-00805f9b34fb',
+                    '0000f000-0000-1000-8000-00805f9b34fb',
+                    '00001800-0000-1000-8000-00805f9b34fb',
+                    '00001801-0000-1000-8000-00805f9b34fb',
+                    '0000180a-0000-1000-8000-00805f9b34fb'
+                ];
+                
+                // Add any service UUID based on custom blocks to be absolutely covered
+                for (let i = 0xe000; i <= 0xe00f; i++) {
+                    const uuid = '0000' + i.toString(16).padStart(4, '0') + '-0000-1000-8000-00805f9b34fb';
+                    if (!optionalServices.includes(uuid)) optionalServices.push(uuid);
+                }
+                for (let i = 0xffe0; i <= 0xffef; i++) {
+                    const uuid = '0000' + i.toString(16).padStart(4, '0') + '-0000-1000-8000-00805f9b34fb';
+                    if (!optionalServices.includes(uuid)) optionalServices.push(uuid);
+                }
+                for (let i = 0xfff0; i <= 0xffff; i++) {
+                    const uuid = '0000' + i.toString(16).padStart(4, '0') + '-0000-1000-8000-00805f9b34fb';
+                    if (!optionalServices.includes(uuid)) optionalServices.push(uuid);
+                }
+
+                // Scan filter accepting all devices to let the user select the smart glasses
                 connectedDevice = await navigator.bluetooth.requestDevice({
-                    filters: [
-                        { namePrefix: 'AiMB' }
-                    ],
-                    optionalServices: [PRIMARY_SERVICE_UUID]
+                    acceptAllDevices: true,
+                    optionalServices: optionalServices
                 });
 
-                addLog(`Dispositivo encontrado: ${connectedDevice.name}. Conectando ao servidor GATT...`, 'info');
+                addLog(`Dispositivo encontrado: ${connectedDevice.name || 'Dispositivo'}. Conectando ao servidor GATT...`, 'info');
                 
                 // Listen to disconnection
                 connectedDevice.addEventListener('gattserverdisconnected', onDisconnected);
 
                 gattServer = await connectedDevice.gatt.connect();
-                addLog('Servidor GATT conectado. Buscando serviço principal...', 'success');
+                addLog('Servidor GATT conectado. Buscando todos os serviços primários disponíveis...', 'success');
 
-                primaryService = await gattServer.getPrimaryService(PRIMARY_SERVICE_UUID);
-                addLog('Serviço principal localizado com sucesso.', 'success');
+                let foundWriteChar = null;
+                let foundNotifyChar = null;
+                let foundService = null;
 
-                // Get WRITE characteristic
                 try {
-                    writeCharacteristic = await primaryService.getCharacteristic(WRITE_CHARACTERISTIC_UUID);
-                    addLog('Característica de ESCRITA (WRITE) localizada.', 'success');
-                } catch (err) {
-                    addLog('Erro ao localizar característica de ESCRITA: ' + err.message, 'warning');
+                    // Try to get all services
+                    const services = await gattServer.getPrimaryServices();
+                    addLog(`Encontrados ${services.length} serviços autorizados. Buscando característica de escrita '${WRITE_CHARACTERISTIC_UUID}'...`, 'info');
+
+                    for (const service of services) {
+                        addLog(`Mapeando serviço: ${service.uuid}`, 'info');
+                        try {
+                            const characteristics = await service.getCharacteristics();
+                            for (const char of characteristics) {
+                                addLog(`- Característica encontrada: ${char.uuid}`, 'info');
+                                
+                                if (char.uuid === WRITE_CHARACTERISTIC_UUID) {
+                                    foundWriteChar = char;
+                                    foundService = service;
+                                    addLog(`-> Característica de ESCRITA (${WRITE_CHARACTERISTIC_UUID}) localizada com sucesso!`, 'success');
+                                }
+                                
+                                if (char.uuid === NOTIFY_CHARACTERISTIC_UUID) {
+                                    foundNotifyChar = char;
+                                    addLog(`-> Característica de NOTIFICAÇÃO (${NOTIFY_CHARACTERISTIC_UUID}) localizada com sucesso!`, 'success');
+                                } else if (!foundNotifyChar && (char.properties.notify || char.properties.indicate)) {
+                                    // Fallback to any notify characteristic in the same service if the main one isn't matched
+                                    foundNotifyChar = char;
+                                    addLog(`-> Característica de NOTIFICAÇÃO alternativa (${char.uuid}) identificada.`, 'success');
+                                }
+                            }
+                        } catch (charErr) {
+                            addLog(`Não foi possível ler as características do serviço ${service.uuid}: ${charErr.message}`, 'warning');
+                        }
+                    }
+                } catch (serviceErr) {
+                    addLog('Erro ao obter os serviços primários: ' + serviceErr.message, 'error');
                 }
 
-                // Get NOTIFY characteristic
-                try {
-                    notifyCharacteristic = await primaryService.getCharacteristic(NOTIFY_CHARACTERISTIC_UUID);
-                    addLog('Característica de NOTIFICAÇÃO (NOTIFY) localizada. Iniciando escuta...', 'success');
+                if (foundWriteChar) {
+                    writeCharacteristic = foundWriteChar;
+                    primaryService = foundService;
+                    addLog(`Sucesso: Conexão mapeada usando o serviço ${primaryService.uuid}`, 'success');
                     
-                    await notifyCharacteristic.startNotifications();
-                    notifyCharacteristic.addEventListener('characteristicvaluechanged', handleNotification);
-                    addLog('Inscrito nas notificações do óculos com sucesso.', 'success');
-                } catch (err) {
-                    addLog('Erro ao localizar e configurar característica de NOTIFICAÇÃO: ' + err.message, 'warning');
+                    if (foundNotifyChar) {
+                        notifyCharacteristic = foundNotifyChar;
+                        try {
+                            addLog(`Iniciando escuta de notificações em: ${notifyCharacteristic.uuid}...`, 'info');
+                            await notifyCharacteristic.startNotifications();
+                            notifyCharacteristic.addEventListener('characteristicvaluechanged', handleNotification);
+                            addLog('Inscrito nas notificações do óculos com sucesso.', 'success');
+                        } catch (notifyErr) {
+                            addLog('Erro ao habilitar notificações: ' + notifyErr.message, 'warning');
+                        }
+                    } else {
+                        addLog('Aviso: Nenhuma característica de notificação compatível foi encontrada.', 'warning');
+                    }
+                } else {
+                    throw new Error(`A característica de escrita requisitada (${WRITE_CHARACTERISTIC_UUID}) não foi encontrada em nenhum serviço disponível do dispositivo.`);
                 }
 
                 setConnectedState(true);
-                addLog(`Sucesso! Conectado a ${connectedDevice.name}`, 'success');
+                addLog(`Sucesso! Conectado a ${connectedDevice.name || 'Óculos Inteligente'}`, 'success');
 
             } catch (err) {
                 addLog(`Erro de conexão: ${err.message}`, 'error');
@@ -868,8 +932,9 @@
             }
 
             try {
-                const data = new Uint8Array(byteArray);
-                addLog(`-> Enviando comando: [${byteArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(', ')}]`, 'tx');
+                const data = (byteArray instanceof Uint8Array) ? byteArray : new Uint8Array(byteArray);
+                const hexArray = Array.from(data).map(b => '0x' + b.toString(16).padStart(2, '0'));
+                addLog(`-> Enviando comando: [${hexArray.join(', ')}]`, 'tx');
                 await writeCharacteristic.writeValue(data);
                 addLog('Comando enviado com sucesso!', 'success');
             } catch (err) {
@@ -888,12 +953,12 @@
                     addLog('Por favor, insira um byte customizado válido (0-255).', 'error');
                     return;
                 }
+                addLog('Disparador de foto acionado (Custom).', 'info');
+                sendCommand([byteValue]);
             } else {
-                byteValue = parseInt(selectedVal, 10);
+                addLog('Disparador de foto acionado (Comando Completo de Hardware).', 'info');
+                sendCommand(new Uint8Array([0x55, 0x06, 0x02, 0x01, 0x00, 0x6a]));
             }
-
-            addLog('Disparador de foto acionado.', 'info');
-            sendCommand([byteValue]);
         });
 
         // Video Recording Handlers
