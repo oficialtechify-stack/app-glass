@@ -401,7 +401,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                                 color = GoldenYellow
                             )
                             Text(
-                                text = "Procurando por dispositivos com prefixo AiMB",
+                                text = "Procurando por óculos inteligentes ativos...",
                                 fontSize = 12.sp,
                                 color = TextMuted,
                                 modifier = Modifier.padding(top = 4.dp)
@@ -922,7 +922,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Sincronizando com dispositivos iniciando com 'AiMB'...",
+                        text = "Buscando óculos inteligentes e dispositivos pareados...",
                         fontSize = 12.sp,
                         color = TextMuted
                     )
@@ -1149,7 +1149,7 @@ fun AiChatScreen(viewModel: MainViewModel) {
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             items(messages) { message ->
-                ChatMessageRow(message)
+                ChatMessageRow(message, onSpeakClick = { viewModel.speak(message.text) })
             }
 
             if (isLoading) {
@@ -1249,7 +1249,7 @@ fun AiChatScreen(viewModel: MainViewModel) {
 }
 
 @Composable
-fun ChatMessageRow(message: ChatMessage) {
+fun ChatMessageRow(message: ChatMessage, onSpeakClick: (() -> Unit)? = null) {
     val isUser = message.sender == "user"
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1297,13 +1297,35 @@ fun ChatMessageRow(message: ChatMessage) {
                     )
                 )
         ) {
-            Text(
-                text = message.text,
-                fontSize = 14.sp,
-                color = Color.White,
-                modifier = Modifier.padding(12.dp),
-                lineHeight = 18.sp
-            )
+            Column {
+                Text(
+                    text = message.text,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    modifier = Modifier.padding(12.dp),
+                    lineHeight = 18.sp
+                )
+                if (!isUser && onSpeakClick != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 8.dp, bottom = 4.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        IconButton(
+                            onClick = onSpeakClick,
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VolumeUp,
+                                contentDescription = "Ouvir resposta",
+                                tint = TechBlue,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         if (isUser) {

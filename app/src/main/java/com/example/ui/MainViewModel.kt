@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.speech.tts.TextToSpeech
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -56,7 +57,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private var recordingStartTime: Long = 0
 
+    private var tts: TextToSpeech? = null
+    private var isTtsReady = false
+
     init {
+        try {
+            tts = TextToSpeech(application) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    val result = tts?.setLanguage(Locale("pt", "BR"))
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        tts?.setLanguage(Locale("pt"))
+                    }
+                    isTtsReady = true
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         // Pre-populate database with some helpful instructions or mock files if empty
         viewModelScope.launch {
             db.bleLogDao().insertLog(
@@ -276,6 +294,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     ChatMessage(sender = "ai", text = aiResponseText)
                 )
 
+                speak(aiResponseText)
+
             } catch (e: Exception) {
                 db.chatMessageDao().insertMessage(
                     ChatMessage(
@@ -293,6 +313,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } finally {
                 _isChatLoading.value = false
             }
+        }
+    }
+
+    fun speak(text: String) {
+        if (isTtsReady) {
+            try {
+                val cleanText = text
+                    .replace(Regex("[*#_`]"), "") // Remove Markdown formatting
+                    .replace(Regex("<[^>]*>"), "") // Remove HTML-like tags
+                tts?.speak(cleanText, TextToSpeech.QUEUE_FLUSH, null, "AiChatResponse")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        try {
+            tts?.stop()
+            tts?.shutdown()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

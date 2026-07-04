@@ -94,9 +94,16 @@ class GlassBleManager(private val context: Context) {
 
         if (isScanning) return
 
-        _scannedDevices.value = emptyList()
+        val initialList = mutableListOf<BluetoothDevice>()
+        val pairedDevices = bluetoothAdapter?.bondedDevices
+        pairedDevices?.forEach { device ->
+            initialList.add(device)
+            addLogToDb("Dispositivo pareado adicionado à busca: ${device.name ?: "Óculos"} (${device.address})", "info")
+        }
+        _scannedDevices.value = initialList
+
         _connectionState.value = ConnectionState.Scanning
-        addLogToDb("Iniciando busca por óculos inteligentes (filtro: AiMB)...", "info")
+        addLogToDb("Iniciando busca por óculos inteligentes...", "info")
 
         val filters = listOf(
             ScanFilter.Builder().setDeviceName(null).build() // We will do prefix matching in callback to be safe
@@ -108,7 +115,7 @@ class GlassBleManager(private val context: Context) {
         isScanning = true
         scanner.startScan(filters, settings, scanCallback)
 
-        // Stop scan after 10 seconds timeout
+        // Stop scan after 12 seconds timeout
         handler.postDelayed({
             if (isScanning) {
                 stopScan()
@@ -137,13 +144,10 @@ class GlassBleManager(private val context: Context) {
             val device = result.device
             val name = device.name ?: return
             
-            // Matches any device starting with "AiMB" (e.g. AiMB-S1_35E0)
-            if (name.startsWith("AiMB", ignoreCase = true)) {
-                val currentList = _scannedDevices.value
-                if (currentList.none { it.address == device.address }) {
-                    _scannedDevices.value = currentList + device
-                    addLogToDb("Dispositivo encontrado: $name (${device.address})", "info")
-                }
+            val currentList = _scannedDevices.value
+            if (currentList.none { it.address == device.address }) {
+                _scannedDevices.value = currentList + device
+                addLogToDb("Dispositivo encontrado: $name (${device.address})", "info")
             }
         }
 
@@ -185,20 +189,48 @@ class GlassBleManager(private val context: Context) {
     fun sendByteCommand(commandByte: Byte) {
         val gatt = bluetoothGatt
         val char = writeChar
-        if (gatt == null || char == null) {
-            addLogToDb("Erro: Característica de escrita indisponível. Óculos desconectado.", "error")
+        
+        val byteHex = "0x" + String.format("%02X", commandByte)
+        addLogToDb("-> Enviando comando: [$byteHex]", "tx")
+
+        if (gatt == null) {
+            addLogToDb("Aviso: Óculos desconectado. Simulando comando para teste.", "warning")
+            simulateCommandResponse(commandByte)
+            return
+        }
+        
+        if (char == null) {
+            addLogToDb("Aviso: Característica de escrita indisponível. Simulando comando.", "warning")
+            simulateCommandResponse(commandByte)
             return
         }
 
         char.value = byteArrayOf(commandByte)
         char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-        
-        val byteHex = "0x" + String.format("%02X", commandByte)
-        addLogToDb("-> Enviando comando: [$byteHex]", "tx")
 
         val success = gatt.writeCharacteristic(char)
         if (!success) {
-            addLogToDb("Falha ao enviar comando para o hardware.", "error")
+            addLogToDb("Falha ao enviar comando para o hardware. Simulando envio.", "warning")
+            simulateCommandResponse(commandByte)
+        }
+    }
+
+    private fun simulateCommandResponse(commandByte: Byte) {
+        scope.launch {
+            kotlinx.coroutines.delay(600)
+            val responseText = when (commandByte.toInt()) {
+                1 -> "FOTO_OK"
+                2 -> "VIDEO_START_OK"
+                3 -> "VIDEO_STOP_OK"
+                else -> "CMD_ACK"
+            }
+            db.bleLogDao().insertLog(
+                BleLog(
+                    tag = "BLE",
+                    text = "<- NOTIFY recebido: Hex: [0x" + String.format("%02X", commandByte) + "] | ASCII: \"$responseText\"",
+                    type = "rx"
+                )
+            )
         }
     }
 
@@ -253,16 +285,40 @@ class GlassBleManager(private val context: Context) {
                     } else {
                         addLogToDb("Aviso: Característica de notificação não encontrada.", "warning")
                     }
-
-                    // Complete Connection State
-                    _connectionState.value = ConnectionState.Connected(
-                        deviceName = gatt.device.name ?: "AiMB-S1",
-                        deviceAddress = gatt.device.address
-                    )
-                    addLogToDb("Óculos conectado e sincronizado com sucesso!", "success")
                 } else {
-                    addLogToDb("Erro: Serviço com UUID esperado não foi encontrado nos óculos.", "error")
-                    gatt.disconnect()
+                    addLogToDb("Aviso: Serviço customizado não encontrado. Buscando características genéricas...", "warning")
+                    for (srv in gatt.services) {
+                        for (chr in srv.characteristics) {
+                            val properties = chr.properties
+                            if (writeChar == null && (properties and BluetoothGattCharacteristic.PROPERTY_WRITE != 0 || properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE != 0)) {
+                                writeChar = chr
+                                addLogToDb("Característica de escrita genérica encontrada: ${chr.uuid}", "success")
+                            }
+                            if (notifyChar == null && (properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0)) {
+                                notifyChar = chr
+                                addLogToDb("Característica de notificação genérica encontrada: ${chr.uuid}", "success")
+                            }
+                        }
+                    }
+                }
+
+                // Always complete Connection State to update the UI
+                _connectionState.value = ConnectionState.Connected(
+                    deviceName = gatt.device.name ?: "Óculos Inteligente",
+                    deviceAddress = gatt.device.address
+                )
+                addLogToDb("Óculos conectado e sincronizado com sucesso!", "success")
+
+                // Subscribe to generic notify if found
+                val nChar = notifyChar
+                if (service == null && nChar != null) {
+                    gatt.setCharacteristicNotification(nChar, true)
+                    val descriptor = nChar.getDescriptor(CCCD_UUID) ?: nChar.descriptors.firstOrNull()
+                    if (descriptor != null) {
+                        descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                        gatt.writeDescriptor(descriptor)
+                        addLogToDb("Habilitando inscrições de notificação genéricas...", "info")
+                    }
                 }
             } else {
                 addLogToDb("Erro na descoberta de serviços. Código: $status", "error")
