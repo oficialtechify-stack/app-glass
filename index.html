@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Glass Controller - AiMB-S1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #111318;
+            --card-bg: #1D2024;
+            --card-border: #43474E;
+            --text-primary: #E2E2E6;
+            --text-secondary: #8E9199;
+            --accent-blue: #D0E4FF;
+            --accent-blue-hover: #adcfff;
+            --accent-blue-text: #003258;
+            --accent-green: #10b981;
+            --accent-green-hover: #059669;
+            --accent-coral: #910002;
+            --accent-coral-hover: #b30002;
+            --accent-yellow: #f59e0b;
+            --console-bg: #111318;
+            --font-main: 'Inter', 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 10px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            fill: var(--accent-blue);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, #ffffff 40%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .web-bluetooth-warning {
+            background-color: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .warning-icon {
+            fill: var(--accent-coral);
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .warning-text h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .warning-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .connection-panel {
+            align-items: center;
+            text-align: center;
+            padding: 30px 24px;
+        }
+
+        .bt-pulse {
+            position: relative;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background-color: #004A77;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 0 15px rgba(0, 74, 119, 0.4);
+        }
+
+        .bt-pulse::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--accent-blue);
+            opacity: 0;
+            animation: pulse 2s infinite;
+        }
+
+        .bt-pulse.connected {
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        .bt-pulse.connected::after {
+            border-color: var(--accent-green);
+        }
+        .bt-pulse.scanning {
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+        .bt-pulse.scanning::after {
+            border-color: var(--accent-yellow);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.6);
+                opacity: 0;
+            }
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background-color: rgba(156, 163, 175, 0.1);
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            border: 1px solid rgba(156, 163, 175, 0.15);
+        }
+
+        .status-badge.disconnected {
+            color: var(--text-secondary);
+            background-color: rgba(156, 163, 175, 0.1);
+        }
+
+        .status-badge.scanning {
+            color: var(--accent-yellow);
+            background-color: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .status-badge.connected {
+            color: var(--accent-green);
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .btn {
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: var(--accent-blue-text);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .btn-danger {
+            background-color: rgba(244, 63, 94, 0.15);
+            color: var(--accent-coral);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+
+        .btn-danger:hover {
+            background-color: rgba(244, 63, 94, 0.25);
+        }
+
+        .btn-green {
+            background-color: var(--accent-green);
+            color: #ffffff;
+        }
+
+        .btn-green:hover {
+            background-color: var(--accent-green-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-green:active {
+            transform: translateY(1px);
+        }
+
+        .btn-coral {
+            background-color: var(--accent-coral);
+            color: #ffffff;
+        }
+
+        .btn-coral:hover {
+            background-color: var(--accent-coral-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-coral:active {
+            transform: translateY(1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .device-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            background-color: rgba(255,255,255,0.02);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+        }
+
+        .panel-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 10px;
+            margin-bottom: 8px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 600px) {
+            .control-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .control-card {
+            background-color: rgba(255,255,255,0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .control-card-header svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            background-color: var(--console-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.875rem;
+            outline: none;
+            flex-grow: 1;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .log-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .console-clear-btn:hover {
+            color: var(--accent-coral);
+        }
+
+        .console-logs {
+            background-color: var(--console-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 0.775rem;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .log-time {
+            color: #556073;
+            flex-shrink: 0;
+        }
+
+        .log-text {
+            word-break: break-all;
+        }
+
+        .log-info { color: #818cf8; }
+        .log-success { color: var(--accent-green); }
+        .log-warning { color: var(--accent-yellow); }
+        .log-error { color: var(--accent-coral); }
+        .log-rx { color: #38bdf8; }
+        .log-tx { color: #c084fc; }
+
+        .disabled-overlay {
+            position: relative;
+        }
+
+        .disabled-overlay::after {
+            content: 'Óculos desconectado. Conecte no painel acima.';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(11, 13, 17, 0.82);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 16px;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .disabled-overlay.active::after {
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px 0 10px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255,255,255,0.02);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <svg class="logo-icon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1-5.33V10h2.5c1.38 0 2.5 1.12 2.5 2.5S16.88 15 15.5 15H13v3.33c0 .37-.3.67-.67.67H11.67c-.37 0-.67-.3-.67-.67V15H8.5C7.12 15 6 13.88 6 12.5S7.12 10 8.5 10H11V6.67c0-.37.3-.67.67-.67h.67c.37 0 .67.3.67.67zm3.5 8.83c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1zm-9 0c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1z"/>
+                </svg>
+                <div>
+                    <h1>Smart Glass Controller</h1>
+                    <div class="subtitle">Modelo AiMB-S1 Bluetooth Controller</div>
+                </div>
+            </div>
+            <span class="subtitle">v1.0.0</span>
+        </header>
+
+        <!-- Warning for Browsers without Web Bluetooth Support -->
+        <div id="bt-warning" class="web-bluetooth-warning" style="display: none;">
+            <svg class="warning-icon" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <div class="warning-text">
+                <h3>Web Bluetooth Não Suportado</h3>
+                <p>Seu navegador não possui suporte para Web Bluetooth. Use o <strong>Google Chrome</strong>, <strong>Microsoft Edge</strong> ou <strong>Opera</strong> em computadores, ou o app nativo no celular para testar a comunicação Bluetooth.</p>
+            </div>
+        </div>
+
+        <!-- Connection Panel Card -->
+        <div class="card connection-panel">
+            <div class="bt-pulse id-pulse" id="bt-pulse">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;">
+                    <path d="m7 7 10 10-5 5V2l5 5L7 17"></path>
+                </svg>
+            </div>
+            
+            <div class="status-badge disconnected" id="status-badge">
+                <span class="status-dot"></span>
+                <span id="status-text">Desconectado</span>
+            </div>
+
+            <button class="btn btn-primary" id="connect-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Conectar Óculos
+            </button>
+
+            <div id="device-details" class="device-info" style="display: none;">
+                <strong>Dispositivo:</strong> <span id="connected-device-name">-</span> | 
+                <strong>MAC / ID:</strong> <span id="connected-device-id">-</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Control Panel (Initially Blocked) -->
+        <div class="card disabled-overlay" id="control-panel">
+            <h2 class="panel-title">Painel de Comando do Hardware</h2>
+
+            <div class="control-grid">
+                <!-- Photo Controller Card -->
+                <div class="control-card">
+                    <div class="control-card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-coral)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        Mecanismo de Foto (Câmera)
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+                        Dispara a câmera interna do óculos inteligente transmitindo um pulso customizável de byte de comando.
+                    </p>
+                    
+                    <div class="input-group">
+                        <span class="input-label">Byte do Comando:</span>
+                        <select id="photo-byte-select">
+                            <option value="1" selected>0x01 (Padrão)</option>
+                            <option value="2">0x02</option>
+                            <option value="5">0x05</option>
+                            <option value="6">0x06</option>
+                            <option value="10">0x0A (10)</option>
+                            <option value="15">0x0F (15)</option>
+                            <option value="custom">Customizado...</option>
+                        </select>
+                        <input type="number" id="photo-byte-custom" min="0" max="255" value="1" style="display: none; max-width: 80px;">
+                    </div>
+
+                    <button class="btn btn-coral" id="photo-btn" style="width: 100%; max-width: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        Disparar Foto
+                    </button>
+                </div>
+
+                <!-- Video Controller Card -->
+                <div class="control-card">
+                    <div class="control-card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 7a2 2 0 0 0-2.45-1.45L16 7V5a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2l4.55 1.45A2 2 0 0 0 23 17V7z"></path>
+                        </svg>
+                        Gravação de Vídeo
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+                        Envia pulsos de controle para inicializar e finalizar a gravação interna de mídia de vídeo.
+                    </p>
+
+                    <div class="input-group">
+                        <span class="input-label">Byte Iniciar:</span>
+                        <input type="number" id="video-start-byte" min="0" max="255" value="2" style="max-width: 70px;">
+                        <span class="input-label">Byte Parar:</span>
+                        <input type="number" id="video-stop-byte" min="0" max="255" value="3" style="max-width: 70px;">
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-green" id="video-start-btn" style="flex: 1; padding: 12px; font-size: 0.875rem; max-width: none;">
+                            Iniciar
+                        </button>
+                        <button class="btn btn-danger" id="video-stop-btn" style="flex: 1; padding: 12px; font-size: 0.875rem; max-width: none; background-color: var(--accent-coral); color: #fff;">
+                            Parar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terminal Logs Area -->
+        <div class="card log-section">
+            <div class="console-header">
+                <h2 class="panel-title" style="border-left-color: var(--accent-yellow)">Console de Log em Tempo Real</h2>
+                <button class="console-clear-btn" id="clear-log-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Limpar Logs
+                </button>
+            </div>
+            
+            <div class="console-logs" id="console-logs">
+                <div class="log-entry">
+                    <span class="log-time">[13:26:39]</span>
+                    <span class="log-text log-info">Sistema inicializado. Pronto para conexões Bluetooth LE.</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Smart Glass Controller &copy; 2026 - Especialista em Firmware e Hardware BLE
+        </footer>
+    </div>
+
+    <script>
+        // UUIDs de Hardware
+        const PRIMARY_SERVICE_UUID = '0000e000-0000-1000-8000-00805f9b34fb';
+        const WRITE_CHARACTERISTIC_UUID = '0000e002-0000-1000-8000-00805f9b34fb';
+        const NOTIFY_CHARACTERISTIC_UUID = '0000e001-0000-1000-8000-00805f9b34fb';
+
+        // DOM Elements
+        const btWarning = document.getElementById('bt-warning');
+        const connectBtn = document.getElementById('connect-btn');
+        const btPulse = document.getElementById('bt-pulse');
+        const statusBadge = document.getElementById('status-badge');
+        const statusText = document.getElementById('status-text');
+        const deviceDetails = document.getElementById('device-details');
+        const connectedDeviceName = document.getElementById('connected-device-name');
+        const connectedDeviceId = document.getElementById('connected-device-id');
+        const controlPanel = document.getElementById('control-panel');
+        const photoBtn = document.getElementById('photo-btn');
+        const photoByteSelect = document.getElementById('photo-byte-select');
+        const photoByteCustom = document.getElementById('photo-byte-custom');
+        const videoStartBtn = document.getElementById('video-start-btn');
+        const videoStopBtn = document.getElementById('video-stop-btn');
+        const videoStartByteInput = document.getElementById('video-start-byte');
+        const videoStopByteInput = document.getElementById('video-stop-byte');
+        const consoleLogs = document.getElementById('console-logs');
+        const clearLogBtn = document.getElementById('clear-log-btn');
+
+        // Bluetooth State Variables
+        let gattServer = null;
+        let primaryService = null;
+        let writeCharacteristic = null;
+        let notifyCharacteristic = null;
+        let connectedDevice = null;
+
+        // Verify Web Bluetooth support
+        if (!navigator.bluetooth) {
+            btWarning.style.display = 'flex';
+            connectBtn.disabled = true;
+            addLog('Web Bluetooth não é suportado neste navegador. Use Google Chrome ou Edge.', 'error');
+        }
+
+        // Dropdown Byte Customization Handler
+        photoByteSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'custom') {
+                photoByteCustom.style.display = 'inline-block';
+            } else {
+                photoByteCustom.style.display = 'none';
+            }
+        });
+
+        // Add Log to Screen Console
+        function addLog(text, type = 'info') {
+            const now = new Date();
+            const timeString = now.toTimeString().split(' ')[0];
+            
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = `[${timeString}]`;
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = `log-text log-${type}`;
+            textSpan.textContent = text;
+            
+            entry.appendChild(timeSpan);
+            entry.appendChild(textSpan);
+            
+            consoleLogs.appendChild(entry);
+            consoleLogs.scrollTop = consoleLogs.scrollHeight;
+        }
+
+        // Clear Log Console
+        clearLogBtn.addEventListener('click', () => {
+            consoleLogs.innerHTML = '';
+            addLog('Console limpo.', 'info');
+        });
+
+        // Toggle UI elements upon Connection
+        function setConnectedState(isConnected) {
+            if (isConnected) {
+                // Update button
+                connectBtn.textContent = 'Desconectar Óculos';
+                connectBtn.className = 'btn btn-danger';
+                
+                // Update Pulse
+                btPulse.className = 'bt-pulse connected';
+                
+                // Update Status Badge
+                statusBadge.className = 'status-badge connected';
+                statusText.textContent = 'Conectado com Sucesso';
+                
+                // Show device details
+                deviceDetails.style.display = 'block';
+                if (connectedDevice) {
+                    connectedDeviceName.textContent = connectedDevice.name || 'Dispositivo Desconhecido';
+                    connectedDeviceId.textContent = connectedDevice.id;
+                }
+                
+                // Enable control panel
+                controlPanel.className = 'card active';
+            } else {
+                // Update button
+                connectBtn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg> Conectar Óculos`;
+                connectBtn.className = 'btn btn-primary';
+                
+                // Update Pulse
+                btPulse.className = 'bt-pulse';
+                
+                // Update Status Badge
+                statusBadge.className = 'status-badge disconnected';
+                statusText.textContent = 'Desconectado';
+                
+                // Hide details
+                deviceDetails.style.display = 'none';
+                
+                // Disable control panel overlay
+                controlPanel.className = 'card disabled-overlay';
+            }
+        }
+
+        // Start scanning and connect
+        async function connectBluetooth() {
+            try {
+                addLog('Iniciando escaneamento de dispositivos Bluetooth...', 'info');
+                statusBadge.className = 'status-badge scanning';
+                statusText.textContent = 'Buscando...';
+                btPulse.className = 'bt-pulse scanning';
+
+                // Scan filter matching prefix "AiMB"
+                connectedDevice = await navigator.bluetooth.requestDevice({
+                    filters: [
+                        { namePrefix: 'AiMB' }
+                    ],
+                    optionalServices: [PRIMARY_SERVICE_UUID]
+                });
+
+                addLog(`Dispositivo encontrado: ${connectedDevice.name}. Conectando ao servidor GATT...`, 'info');
+                
+                // Listen to disconnection
+                connectedDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+                gattServer = await connectedDevice.gatt.connect();
+                addLog('Servidor GATT conectado. Buscando serviço principal...', 'success');
+
+                primaryService = await gattServer.getPrimaryService(PRIMARY_SERVICE_UUID);
+                addLog('Serviço principal localizado com sucesso.', 'success');
+
+                // Get WRITE characteristic
+                try {
+                    writeCharacteristic = await primaryService.getCharacteristic(WRITE_CHARACTERISTIC_UUID);
+                    addLog('Característica de ESCRITA (WRITE) localizada.', 'success');
+                } catch (err) {
+                    addLog('Erro ao localizar característica de ESCRITA: ' + err.message, 'warning');
+                }
+
+                // Get NOTIFY characteristic
+                try {
+                    notifyCharacteristic = await primaryService.getCharacteristic(NOTIFY_CHARACTERISTIC_UUID);
+                    addLog('Característica de NOTIFICAÇÃO (NOTIFY) localizada. Iniciando escuta...', 'success');
+                    
+                    await notifyCharacteristic.startNotifications();
+                    notifyCharacteristic.addEventListener('characteristicvaluechanged', handleNotification);
+                    addLog('Inscrito nas notificações do óculos com sucesso.', 'success');
+                } catch (err) {
+                    addLog('Erro ao localizar e configurar característica de NOTIFICAÇÃO: ' + err.message, 'warning');
+                }
+
+                setConnectedState(true);
+                addLog(`Sucesso! Conectado a ${connectedDevice.name}`, 'success');
+
+            } catch (err) {
+                addLog(`Erro de conexão: ${err.message}`, 'error');
+                onDisconnected();
+            }
+        }
+
+        // Disconnection handler
+        function onDisconnected() {
+            addLog('Conexão Bluetooth finalizada.', 'warning');
+            gattServer = null;
+            primaryService = null;
+            writeCharacteristic = null;
+            notifyCharacteristic = null;
+            connectedDevice = null;
+            setConnectedState(false);
+        }
+
+        // Terminate Connection manually
+        function disconnectBluetooth() {
+            if (connectedDevice && connectedDevice.gatt.connected) {
+                addLog('Desconectando dispositivo voluntariamente...', 'info');
+                connectedDevice.gatt.disconnect();
+            } else {
+                onDisconnected();
+            }
+        }
+
+        // Connect/Disconnect Button listener
+        connectBtn.addEventListener('click', () => {
+            if (gattServer && gattServer.connected) {
+                disconnectBluetooth();
+            } else {
+                connectBluetooth();
+            }
+        });
+
+        // Incoming notification handler (READ/NOTIFY)
+        function handleNotification(event) {
+            const value = event.target.value;
+            const uint8Array = new Uint8Array(value.buffer);
+            
+            // Decodes to Hex and ASCII
+            const hexString = Array.from(uint8Array).map(b => '0x' + b.toString(16).padStart(2, '0')).join(', ');
+            let asciiString = '';
+            try {
+                asciiString = new TextDecoder().decode(value);
+            } catch (e) {
+                asciiString = '[Não convertível para texto]';
+            }
+
+            addLog(`<- NOTIFY recebido: Hex: [${hexString}] | ASCII: "${asciiString.replace(/[\n\r]/g, '')}"`, 'rx');
+        }
+
+        // General Send Command Logic
+        async function sendCommand(byteArray) {
+            if (!writeCharacteristic) {
+                addLog('Erro: Característica de escrita não disponível.', 'error');
+                return;
+            }
+
+            try {
+                const data = new Uint8Array(byteArray);
+                addLog(`-> Enviando comando: [${byteArray.map(b => '0x' + b.toString(16).padStart(2, '0')).join(', ')}]`, 'tx');
+                await writeCharacteristic.writeValue(data);
+                addLog('Comando enviado com sucesso!', 'success');
+            } catch (err) {
+                addLog(`Falha ao enviar comando: ${err.message}`, 'error');
+            }
+        }
+
+        // Trigger Photo Handler
+        photoBtn.addEventListener('click', () => {
+            let byteValue = 1; // Default 0x01
+            const selectedVal = photoByteSelect.value;
+            
+            if (selectedVal === 'custom') {
+                byteValue = parseInt(photoByteCustom.value, 10);
+                if (isNaN(byteValue) || byteValue < 0 || byteValue > 255) {
+                    addLog('Por favor, insira um byte customizado válido (0-255).', 'error');
+                    return;
+                }
+            } else {
+                byteValue = parseInt(selectedVal, 10);
+            }
+
+            addLog('Disparador de foto acionado.', 'info');
+            sendCommand([byteValue]);
+        });
+
+        // Video Recording Handlers
+        videoStartBtn.addEventListener('click', () => {
+            const byteValue = parseInt(videoStartByteInput.value, 10);
+            if (isNaN(byteValue) || byteValue < 0 || byteValue > 255) {
+                addLog('Byte iniciar gravação inválido (0-255).', 'error');
+                return;
+            }
+            addLog('Iniciando gravação de vídeo...', 'info');
+            sendCommand([byteValue]);
+        });
+
+        videoStopBtn.addEventListener('click', () => {
+            const byteValue = parseInt(videoStopByteInput.value, 10);
+            if (isNaN(byteValue) || byteValue < 0 || byteValue > 255) {
+                addLog('Byte parar gravação inválido (0-255).', 'error');
+                return;
+            }
+            addLog('Finalizando gravação de vídeo...', 'info');
+            sendCommand([byteValue]);
+        });
+    </script>
+</body>
+</html>

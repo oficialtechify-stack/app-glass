@@ -1,0 +1,6 @@
+{
+  "name": "Smart Glass",
+  "description": "Aplicativo completo de controle para óculos inteligentes AiMB-S1 via Bluetooth LE, com console de logs em tempo real, álbum de mídias integrado e Assistente de Diálogo de IA integrado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
