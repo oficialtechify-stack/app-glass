@@ -3,12 +3,9 @@ package com.example.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.BuildConfig
-import com.example.api.Content as ApiContent
-import com.example.api.GenerateContentRequest
-import com.example.api.Part as ApiPart
+import com.example.api.ChatTurn
+import com.example.api.ChatRequest
 import com.example.api.RetrofitClient
-import com.example.api.SystemInstruction
 import com.example.ble.ConnectionState
 import com.example.ble.GlassBleManager
 import com.example.data.AlbumItem
@@ -192,37 +189,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val history = db.chatMessageDao().getAllMessages().stateIn(viewModelScope).value
             
             try {
-                val apiKey = BuildConfig.GEMINI_API_KEY
-                
-                // Formulate system instructions specifically directing the identity matching Henrique's device
-                val systemInstruction = SystemInstruction(
-                    parts = listOf(
-                        ApiPart(
-                            text = "Você é o 'Assistente de IA' integrado aos óculos inteligentes modelo AiMB-S1 do Henrique. " +
-                                    "Seja amigável, conciso e técnico. Suas respostas devem ser de preferência em português. " +
-                                    "Você pode dar dicas sobre o funcionamento do óculos, descrever recursos de gravação e foto, " +
-                                    "auxiliar com traduções, responder perguntas gerais de IA ou dar assistência contextual, sempre se dirigindo a ele como Henrique."
-                        )
-                    )
-                )
-
-                // Map context history to Gemini contents schema
-                val contents = history.map { msg ->
-                    val role = if (msg.sender == "user") "user" else "model"
-                    ApiContent(role = role, parts = listOf(ApiPart(text = msg.text)))
-                } + ApiContent(role = "user", parts = listOf(ApiPart(text = text)))
-
-                val request = GenerateContentRequest(
-                    contents = contents,
-                    systemInstruction = systemInstruction
-                )
-
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitClient.geminiService.generateContent(apiKey, request)
+                val messages = history
+                    .filter { it.sender == "user" || it.sender == "ai" }
+                    .takeLast(19)
+                    .map { ChatTurn(if (it.sender == "user") "user" else "assistant", it.text) }
+                    .toMutableList()
+                if (messages.lastOrNull()?.content != text) {
+                    messages.add(ChatTurn("user", text))
                 }
-
-                val aiResponseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                    ?: "Desculpe Henrique, não consegui processar a resposta neste momento."
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.glassAiService.chat(ChatRequest(messages))
+                }
+                val aiResponseText = response.reply
 
                 db.chatMessageDao().insertMessage(
                     ChatMessage(sender = "ai", text = aiResponseText)
@@ -234,7 +212,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 db.chatMessageDao().insertMessage(
                     ChatMessage(
                         sender = "ai",
-                        text = "Erro ao conectar-se com o cérebro da Inteligência Artificial: ${e.localizedMessage}. Por favor, verifique sua conexão com a internet."
+                        text = "Não foi possível consultar a IA (${e.localizedMessage}). Confira a configuração do servidor."
                     )
                 )
                 db.bleLogDao().insertLog(
