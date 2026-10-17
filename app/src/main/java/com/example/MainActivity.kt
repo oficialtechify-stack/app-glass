@@ -60,6 +60,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
@@ -124,6 +125,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalHazeApi::class)
 @Composable
 fun MainScreen(viewModel: MainViewModel = viewModel()) {
     var currentTab by remember { mutableStateOf(AppTab.Home) }
