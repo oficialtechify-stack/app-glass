@@ -365,7 +365,7 @@ fun HomeScreen(viewModel: MainViewModel) {
         item {
             Card(
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = SlateCard),
+                colors = CardDefaults.cardColors(containerColor = Color(0xAD324E72)),
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(1.dp, BorderGrey, RoundedCornerShape(24.dp))
@@ -622,7 +622,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                             },
                             enabled = isConnected,
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = SlateCard),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xAD324E72)),
                             modifier = Modifier
                                 .weight(1f)
                                 .height(92.dp)
@@ -674,7 +674,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                     // Advanced parameters customization
                     Card(
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = SlateCard),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xAD324E72)),
                         modifier = Modifier
                             .fillMaxWidth()
                             .border(
@@ -1041,7 +1041,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                     Text("Cancelar", color = HotCoral)
                 }
             },
-            containerColor = SlateCard,
+            containerColor = Color(0xAD324E72),
             shape = RoundedCornerShape(20.dp)
         )
     }
@@ -1087,7 +1087,7 @@ fun ManualCard(
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SlateCard),
+        colors = CardDefaults.cardColors(containerColor = Color(0xAD324E72)),
         modifier = Modifier
             .width(160.dp)
             .height(200.dp)
@@ -1559,7 +1559,7 @@ fun AlbumScreen(viewModel: MainViewModel) {
                     }
                 }
             },
-            containerColor = SlateCard,
+            containerColor = Color(0xAD324E72),
             shape = RoundedCornerShape(20.dp)
         )
     }
@@ -1569,7 +1569,7 @@ fun AlbumScreen(viewModel: MainViewModel) {
 fun AlbumItemCard(item: AlbumItem, onPreview: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SlateCard),
+        colors = CardDefaults.cardColors(containerColor = Color(0xAD324E72)),
         modifier = Modifier
             .fillMaxWidth()
             .height(180.dp)
@@ -1680,7 +1680,7 @@ fun SettingsScreen() {
         // User profile Card
         Card(
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = SlateCard),
+            colors = CardDefaults.cardColors(containerColor = Color(0xAD324E72)),
             modifier = Modifier
                 .fillMaxWidth()
                 .border(1.dp, BorderGrey, RoundedCornerShape(20.dp))
@@ -1717,7 +1717,7 @@ fun SettingsScreen() {
         // Options settings list matching the screen image
         Card(
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = SlateCard),
+            colors = CardDefaults.cardColors(containerColor = Color(0xAD324E72)),
             modifier = Modifier
                 .fillMaxWidth()
                 .border(1.dp, BorderGrey, RoundedCornerShape(20.dp))
