@@ -161,6 +161,20 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         }
     }
 
+    var bluetoothNotice by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(connectionState) {
+        bluetoothNotice = when (connectionState) {
+            is ConnectionState.Scanning -> "Procurando óculos próximos…"
+            is ConnectionState.Connecting -> "Conectando aos óculos…"
+            is ConnectionState.Connected -> "Bluetooth conectado"
+            else -> null
+        }
+        if (bluetoothNotice != null) {
+            kotlinx.coroutines.delay(3500)
+            bluetoothNotice = null
+        }
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar(
@@ -220,6 +234,10 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     AppTab.Me -> SettingsScreen()
                 }
             }
+            GlassStatusBanner(
+                message = bluetoothNotice,
+                modifier = Modifier.align(Alignment.TopCenter).padding(horizontal = 16.dp, vertical = 10.dp)
+            )
         }
     }
 }
