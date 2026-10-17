@@ -1,9 +1,5 @@
 package com.example
 
-import android.os.Build
-import androidx.compose.ui.graphics.BlurEffect
-import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,7 +17,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Reusable glass-like surface. The layered specular highlight works on Android 7+.
- * The blur applies to the panel's tint layer, not the scene behind it.
+ * Specular border and tint; backdrop sampling is handled separately.
  */
 @Composable
 fun GlassPanel(
@@ -61,15 +57,6 @@ fun GlassPanel(
                 shape = shape
             ),
     ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Box(
-                Modifier.matchParentSize()
-                    .graphicsLayer {
-                        renderEffect = BlurEffect(18f, 18f, TileMode.Clamp)
-                    }
-                    .background(Color(0x225D9BCF))
-            )
-        }
         content()
     }
 }
