@@ -76,6 +76,9 @@ googleServices {
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
+  // Haze 2: source-backed optical glass (blur + refraction + highlights).
+  implementation("dev.chrisbanes.haze:haze:2.0.0")
+  implementation("dev.chrisbanes.haze:haze-glass:2.0.0")
   implementation(platform(libs.androidx.compose.bom))
   implementation(platform(libs.firebase.bom))
   // implementation(libs.accompanist.permissions)
