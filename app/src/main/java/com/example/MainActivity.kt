@@ -811,8 +811,17 @@ fun HomeScreen(viewModel: MainViewModel) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, BorderGrey, RoundedCornerShape(16.dp))
-                    .background(SlateCard, RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color(0xB95B7DA5), Color(0xBA243B5C), Color(0xD0192942))
+                        )
+                    )
+                    .border(
+                        1.dp,
+                        Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.08f))),
+                        RoundedCornerShape(20.dp)
+                    )
                     .padding(16.dp)
             ) {
                 Row(
