@@ -4,12 +4,14 @@ import android.os.Build
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -28,6 +30,16 @@ fun GlassPanel(
     content: @Composable BoxScope.() -> Unit
 ) {
     val shape = RoundedCornerShape(cornerRadius.dp)
+    val transition = rememberInfiniteTransition(label = "glass_reflection")
+    val reflection by transition.animateFloat(
+        initialValue = 0.28f,
+        targetValue = 0.58f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glass_reflection_alpha"
+    )
     Box(
         modifier = modifier
             .shadow(12.dp, shape, ambientColor = Color(0x502D8DE0))
@@ -44,7 +56,7 @@ fun GlassPanel(
             .border(
                 width = 1.dp,
                 brush = Brush.verticalGradient(
-                    listOf(Color.White.copy(alpha = 0.48f), Color.White.copy(alpha = 0.09f))
+                    listOf(Color.White.copy(alpha = reflection), Color.White.copy(alpha = 0.09f))
                 ),
                 shape = shape
             ),
