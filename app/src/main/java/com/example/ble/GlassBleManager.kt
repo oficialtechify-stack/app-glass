@@ -195,13 +195,11 @@ class GlassBleManager(private val context: Context) {
 
         if (gatt == null) {
             addLogToDb("Aviso: Óculos desconectado. Simulando comando para teste.", "warning")
-            simulateCommandResponse(commandByte)
             return
         }
         
         if (char == null) {
             addLogToDb("Aviso: Característica de escrita indisponível. Simulando comando.", "warning")
-            simulateCommandResponse(commandByte)
             return
         }
 
@@ -211,26 +209,6 @@ class GlassBleManager(private val context: Context) {
         val success = gatt.writeCharacteristic(char)
         if (!success) {
             addLogToDb("Falha ao enviar comando para o hardware. Simulando envio.", "warning")
-            simulateCommandResponse(commandByte)
-        }
-    }
-
-    private fun simulateCommandResponse(commandByte: Byte) {
-        scope.launch {
-            kotlinx.coroutines.delay(600)
-            val responseText = when (commandByte.toInt()) {
-                1 -> "FOTO_OK"
-                2 -> "VIDEO_START_OK"
-                3 -> "VIDEO_STOP_OK"
-                else -> "CMD_ACK"
-            }
-            db.bleLogDao().insertLog(
-                BleLog(
-                    tag = "BLE",
-                    text = "<- NOTIFY recebido: Hex: [0x" + String.format("%02X", commandByte) + "] | ASCII: \"$responseText\"",
-                    type = "rx"
-                )
-            )
         }
     }
 
@@ -302,12 +280,14 @@ class GlassBleManager(private val context: Context) {
                     }
                 }
 
+                // GATT service discovery completed; proprietary authentication is not yet verified.
+                // Do not interpret this state as authenticated or fully synchronized.
                 // Always complete Connection State to update the UI
                 _connectionState.value = ConnectionState.Connected(
                     deviceName = gatt.device.name ?: "Óculos Inteligente",
                     deviceAddress = gatt.device.address
                 )
-                addLogToDb("Óculos conectado e sincronizado com sucesso!", "success")
+                addLogToDb("Conexão GATT estabelecida; autenticação e sincronização RDGlass ainda não verificadas.", "success")
 
                 // Subscribe to generic notify if found
                 val nChar = notifyChar
