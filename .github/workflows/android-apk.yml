@@ -17,14 +17,16 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
       - name: Validate Kotlin and unit tests
         run: |
-          chmod +x gradlew
-          ./gradlew :app:compileDebugKotlin :app:testDebugUnitTest --stacktrace
+          gradle :app:compileDebugKotlin :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
         run: |
-          chmod +x gradlew
-          ./gradlew :app:assembleDebug --stacktrace
+          gradle :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         if: success()
         with:
