@@ -543,7 +543,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                                         color = TextMuted
                                     )
                                     Text(
-                                        text = "Firmware: MA05_G6_V1.03_H2.0",
+                                        text = "Firmware: indisponível",
                                         fontSize = 11.sp,
                                         color = TextMuted
                                     )
@@ -558,7 +558,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            text = "Conectado • Bateria 72%",
+                                            text = "Conectado • Bateria indisponível",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = MintGreen
