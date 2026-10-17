@@ -60,6 +60,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
+import dev.chrisbanes.haze.glass.GlassStyle
+import dev.chrisbanes.haze.glass.hazeGlass
 import com.example.ble.ConnectionState
 import com.example.data.AlbumItem
 import com.example.data.BleLog
@@ -178,12 +183,22 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         }
     }
 
+    val glassState = rememberHazeState()
     Scaffold(
         bottomBar = {
             NavigationBar(
                 containerColor = Color(0xD528405F),
                 tonalElevation = 0.dp,
-                modifier = Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                modifier = Modifier
+                    .hazeGlass(
+                        input = HazeInput.Sources(glassState),
+                        style = GlassStyle.regular.then {
+                            tint(Color.White.copy(alpha = 0.10f))
+                            shape(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                        }
+                    )
+                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                    .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
             ) {
                 AppTab.values().forEach { tab ->
                     val selected = currentTab == tab
@@ -219,6 +234,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .hazeSource(glassState)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(Color(0xFF315B87), Color(0xFF172B48), Color(0xFF090D17))
