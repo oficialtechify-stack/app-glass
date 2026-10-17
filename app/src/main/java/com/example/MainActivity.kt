@@ -68,8 +68,8 @@ import java.util.Locale
 
 // Custom modern Dark Theme colors matching the premium glasses branding (Immersive UI)
 private val CarbonBackground = Color(0xFF0B1220)
-private val SlateCard = Color(0xFF25344B)
-private val BorderGrey = Color(0xFF52657E)
+private val SlateCard = Color(0xB83A4A64)
+private val BorderGrey = Color(0x807F9AB8)
 private val TechBlue = Color(0xFF9DD5FF)
 private val MintGreen = Color(0xFF10B981)
 private val HotCoral = Color(0xFF910002)
@@ -189,7 +189,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                             )
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = TechBlue.copy(alpha = 0.25f)
+                            indicatorColor = Color.White.copy(alpha = 0.16f)
                         ),
                         modifier = Modifier.testTag("nav_tab_${tab.name.lowercase()}")
                     )
@@ -204,7 +204,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 .padding(innerPadding)
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color(0xFF1A3050), CarbonBackground, Color(0xFF090D17))
+                        colors = listOf(Color(0xFF233F68), Color(0xFF101C31), Color(0xFF090D17))
                     )
                 )
         ) {
