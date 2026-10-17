@@ -15,6 +15,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -227,11 +229,13 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     permissionLauncher.launch(permissionsToRequest)
                 }
             } else {
-                when (currentTab) {
-                    AppTab.Home -> HomeScreen(viewModel)
-                    AppTab.AI -> AiChatScreen(viewModel)
-                    AppTab.Album -> AlbumScreen(viewModel)
-                    AppTab.Me -> SettingsScreen()
+                Crossfade(targetState = currentTab, animationSpec = tween(260), label = "glass_tabs") { tab ->
+                    when (tab) {
+                        AppTab.Home -> HomeScreen(viewModel)
+                        AppTab.AI -> AiChatScreen(viewModel)
+                        AppTab.Album -> AlbumScreen(viewModel)
+                        AppTab.Me -> SettingsScreen()
+                    }
                 }
             }
             GlassStatusBanner(
