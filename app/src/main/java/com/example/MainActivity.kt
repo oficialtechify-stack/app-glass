@@ -180,9 +180,9 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = SlateCard.copy(alpha = 0.90f),
-                tonalElevation = 2.dp,
-                modifier = Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+                containerColor = Color(0xD528405F),
+                tonalElevation = 0.dp,
+                modifier = Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
             ) {
                 AppTab.values().forEach { tab ->
                     val selected = currentTab == tab
