@@ -927,6 +927,9 @@ fun HomeScreen(viewModel: MainViewModel) {
     // Bluetooth Devices Scanning Dialog
     if (showScanDialog) {
         AlertDialog(
+            shape = RoundedCornerShape(30.dp),
+            containerColor = Color(0xEF24344F),
+            tonalElevation = 0.dp,
             onDismissRequest = {
                 viewModel.stopBleScan()
                 showScanDialog = false
@@ -1449,6 +1452,9 @@ fun AlbumScreen(viewModel: MainViewModel) {
     // Media Preview Overlay Dialog
     selectedItemForPreview?.let { item ->
         AlertDialog(
+            shape = RoundedCornerShape(30.dp),
+            containerColor = Color(0xEF24344F),
+            tonalElevation = 0.dp,
             onDismissRequest = { selectedItemForPreview = null },
             title = {
                 Text(
