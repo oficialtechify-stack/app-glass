@@ -6,64 +6,34 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
-import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
 @JsonClass(generateAdapter = true)
-data class Part(
-    val text: String
-)
+data class ChatTurn(val role: String, val content: String)
 
 @JsonClass(generateAdapter = true)
-data class Content(
-    val role: String, // "user" or "model"
-    val parts: List<Part>
-)
+data class ChatRequest(val messages: List<ChatTurn>)
 
 @JsonClass(generateAdapter = true)
-data class SystemInstruction(
-    val parts: List<Part>
-)
+data class ChatResponse(val reply: String)
 
-@JsonClass(generateAdapter = true)
-data class GenerateContentRequest(
-    val contents: List<Content>,
-    val systemInstruction: SystemInstruction? = null
-)
-
-@JsonClass(generateAdapter = true)
-data class Candidate(
-    val content: Content
-)
-
-@JsonClass(generateAdapter = true)
-data class GenerateContentResponse(
-    val candidates: List<Candidate>?
-)
-
-interface GeminiService {
-    @POST("v1beta/models/gemini-3.5-flash:generateContent")
-    suspend fun generateContent(
-        @Query("key") apiKey: String,
-        @Body request: GenerateContentRequest
-    ): GenerateContentResponse
+interface GlassAiService {
+    @POST("api/chat")
+    suspend fun chat(@Body request: ChatRequest): ChatResponse
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "https://generativelanguage.googleapis.com/"
-
-    private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
-    val geminiService: GeminiService by lazy {
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
+    val glassAiService: GlassAiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://app-glass.vercel.app/")
+            .client(client)
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
-        retrofit.create(GeminiService::class.java)
+            .create(GlassAiService::class.java)
     }
 }
