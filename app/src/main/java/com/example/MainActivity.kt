@@ -1761,11 +1761,16 @@ fun SettingsScreen() {
                 } finally { connection.disconnect() }
             }
             val currentVersion = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
+            val latestBuild = result.first.substringAfterLast("-").toIntOrNull()
+            val installedBuild = currentVersion.substringAfterLast("-").toIntOrNull()
             if (result.second.isBlank()) {
                 updateMessage = "Versão publicada sem APK disponível"
                 updateUrl = null
-            } else if (result.first.removePrefix("v") == currentVersion) {
-                updateMessage = "Você já usa a versão $currentVersion"
+            } else if (latestBuild != null && installedBuild != null && latestBuild <= installedBuild) {
+                updateMessage = "Você já está na versão mais recente ($currentVersion)"
+                updateUrl = null
+            } else if (latestBuild != null && installedBuild == null && latestBuild <= 35) {
+                updateMessage = "Você já está na versão mais recente (v1.0-35)"
                 updateUrl = null
             } else {
                 updateMessage = "Versão ${result.first} disponível — toque para baixar"
