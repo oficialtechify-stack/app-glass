@@ -1107,9 +1107,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                 ) {
                     Text("Cancelar", color = HotCoral)
                 }
-            },
-            containerColor = Color(0x754F7198),
-            shape = RoundedCornerShape(20.dp)
+            }
         )
     }
 }
@@ -1626,9 +1624,7 @@ fun AlbumScreen(viewModel: MainViewModel) {
                         Text("Fechar", color = TechBlue)
                     }
                 }
-            },
-            containerColor = Color(0x754F7198),
-            shape = RoundedCornerShape(20.dp)
+            }
         )
     }
 }
