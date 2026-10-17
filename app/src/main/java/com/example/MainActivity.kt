@@ -60,6 +60,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.CompositionLocalProvider
+import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.hazeSource
@@ -98,6 +101,8 @@ private val AppDarkColorScheme = darkColorScheme(
     onBackground = LightGrey,
     onSurface = LightGrey
 )
+
+private val LocalGlassHaze = compositionLocalOf<HazeState?> { null }
 
 enum class AppTab(val title: String, val iconFilled: ImageVector, val iconOutlined: ImageVector) {
     Home("Início", Icons.Filled.Home, Icons.Outlined.Home),
@@ -186,6 +191,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     }
 
     val glassState = rememberHazeState()
+    CompositionLocalProvider(LocalGlassHaze provides glassState) {
     Scaffold(
         bottomBar = {
             NavigationBar(
@@ -300,6 +306,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
             )
         }
     }
+}
 }
 
 @Composable
@@ -423,6 +430,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
                 modifier = Modifier
+                    .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(24.dp)) }) } ?: Modifier)
                     .fillMaxWidth()
                     .border(1.dp, BorderGrey, RoundedCornerShape(24.dp))
             ) {
@@ -732,6 +740,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
                         modifier = Modifier
+                    .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(16.dp)) }) } ?: Modifier)
                             .fillMaxWidth()
                             .border(
                 1.dp,
@@ -1145,6 +1154,7 @@ fun ManualCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
         modifier = Modifier
+                    .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(16.dp)) }) } ?: Modifier)
             .width(160.dp)
             .height(200.dp)
             .border(
@@ -1627,6 +1637,7 @@ fun AlbumItemCard(item: AlbumItem, onPreview: () -> Unit) {
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
         modifier = Modifier
+                    .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(16.dp)) }) } ?: Modifier)
             .fillMaxWidth()
             .height(180.dp)
             .border(
@@ -1738,6 +1749,7 @@ fun SettingsScreen() {
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
             modifier = Modifier
+                    .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(20.dp)) }) } ?: Modifier)
                 .fillMaxWidth()
                 .border(1.dp, BorderGrey, RoundedCornerShape(20.dp))
         ) {
@@ -1775,6 +1787,7 @@ fun SettingsScreen() {
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
             modifier = Modifier
+                    .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(20.dp)) }) } ?: Modifier)
                 .fillMaxWidth()
                 .border(1.dp, BorderGrey, RoundedCornerShape(20.dp))
         ) {
