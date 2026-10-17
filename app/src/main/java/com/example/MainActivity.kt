@@ -626,7 +626,11 @@ fun HomeScreen(viewModel: MainViewModel) {
                             modifier = Modifier
                                 .weight(1f)
                                 .height(92.dp)
-                                .border(1.dp, BorderGrey, RoundedCornerShape(16.dp))
+                                .border(
+                1.dp,
+                Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.08f))),
+                RoundedCornerShape(20.dp)
+            )
                                 .testTag("take_photo_card")
                         ) {
                             Row(
@@ -673,7 +677,11 @@ fun HomeScreen(viewModel: MainViewModel) {
                         colors = CardDefaults.cardColors(containerColor = SlateCard),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, BorderGrey, RoundedCornerShape(16.dp))
+                            .border(
+                1.dp,
+                Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.08f))),
+                RoundedCornerShape(20.dp)
+            )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
@@ -1083,7 +1091,11 @@ fun ManualCard(
         modifier = Modifier
             .width(160.dp)
             .height(200.dp)
-            .border(1.dp, BorderGrey, RoundedCornerShape(16.dp))
+            .border(
+                1.dp,
+                Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.08f))),
+                RoundedCornerShape(20.dp)
+            )
     ) {
         Column(
             modifier = Modifier
@@ -1561,7 +1573,11 @@ fun AlbumItemCard(item: AlbumItem, onPreview: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(180.dp)
-            .border(1.dp, BorderGrey, RoundedCornerShape(16.dp))
+            .border(
+                1.dp,
+                Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.42f), Color.White.copy(alpha = 0.08f))),
+                RoundedCornerShape(20.dp)
+            )
             .clickable { onPreview() }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
