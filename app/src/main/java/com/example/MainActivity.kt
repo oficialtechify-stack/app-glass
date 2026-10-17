@@ -1,3 +1,5 @@
+@file:OptIn(dev.chrisbanes.haze.ExperimentalHazeApi::class)
+
 package com.example
 
 import android.Manifest
@@ -428,9 +430,9 @@ fun HomeScreen(viewModel: MainViewModel) {
         item {
             Card(
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
+                colors = CardDefaults.cardColors(containerColor = Color(0x265F83B2)),
                 modifier = Modifier
-                    .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(24.dp)) }) } ?: Modifier)
+                    .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { tint(Color.White.copy(alpha = 0.10f)); shape(RoundedCornerShape(24.dp)) }) } ?: Modifier)
                     .fillMaxWidth()
                     .border(1.dp, BorderGrey, RoundedCornerShape(24.dp))
             ) {
@@ -686,7 +688,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                             },
                             enabled = isConnected,
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
+                            colors = CardDefaults.cardColors(containerColor = Color(0x265F83B2)),
                             modifier = Modifier
                                 .weight(1f)
                                 .height(92.dp)
@@ -738,7 +740,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                     // Advanced parameters customization
                     Card(
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
+                        colors = CardDefaults.cardColors(containerColor = Color(0x265F83B2)),
                         modifier = Modifier
                     .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(16.dp)) }) } ?: Modifier)
                             .fillMaxWidth()
@@ -1152,7 +1154,7 @@ fun ManualCard(
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
+        colors = CardDefaults.cardColors(containerColor = Color(0x265F83B2)),
         modifier = Modifier
                     .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(16.dp)) }) } ?: Modifier)
             .width(160.dp)
@@ -1635,7 +1637,7 @@ fun AlbumScreen(viewModel: MainViewModel) {
 fun AlbumItemCard(item: AlbumItem, onPreview: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
+        colors = CardDefaults.cardColors(containerColor = Color(0x265F83B2)),
         modifier = Modifier
                     .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(16.dp)) }) } ?: Modifier)
             .fillMaxWidth()
@@ -1747,7 +1749,7 @@ fun SettingsScreen() {
         // User profile Card
         Card(
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
+            colors = CardDefaults.cardColors(containerColor = Color(0x265F83B2)),
             modifier = Modifier
                     .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(20.dp)) }) } ?: Modifier)
                 .fillMaxWidth()
@@ -1785,7 +1787,7 @@ fun SettingsScreen() {
         // Options settings list matching the screen image
         Card(
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0x754F7198)),
+            colors = CardDefaults.cardColors(containerColor = Color(0x265F83B2)),
             modifier = Modifier
                     .then(LocalGlassHaze.current?.let { haze -> Modifier.hazeGlass(input = HazeInput.Sources(haze), style = GlassStyle.regular.then { shape(RoundedCornerShape(20.dp)) }) } ?: Modifier)
                 .fillMaxWidth()
