@@ -18,6 +18,10 @@ jobs:
           java-version: '17'
           cache: gradle
       - uses: android-actions/setup-android@v3
+      - name: Validate Kotlin and unit tests
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:compileDebugKotlin :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
         run: |
           chmod +x gradlew
