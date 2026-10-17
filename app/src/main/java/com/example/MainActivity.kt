@@ -7,6 +7,13 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.content.Intent
+import android.net.Uri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -1728,6 +1735,47 @@ fun AlbumItemCard(item: AlbumItem, onPreview: () -> Unit) {
 
 @Composable
 fun SettingsScreen() {
+    val context = LocalContext.current
+    var updateMessage by remember { mutableStateOf("Verificar atualizações") }
+    var updateUrl by remember { mutableStateOf<String?>(null) }
+    var checking by remember { mutableStateOf(false) }
+    LaunchedEffect(checking) {
+        if (!checking) return@LaunchedEffect
+        try {
+            val result = withContext(Dispatchers.IO) {
+                val connection = URL("https://api.github.com/repos/oficialtechify-stack/app-glass/releases/latest").openConnection() as HttpURLConnection
+                connection.connectTimeout = 12000
+                connection.readTimeout = 12000
+                connection.setRequestProperty("Accept", "application/vnd.github+json")
+                try {
+                    if (connection.responseCode != 200) throw IllegalStateException("Nenhuma versão publicada ainda (HTTP ${connection.responseCode})")
+                    val release = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
+                    val tag = release.optString("tag_name")
+                    val assets = release.getJSONArray("assets")
+                    var apk = ""
+                    for (i in 0 until assets.length()) {
+                        val asset = assets.getJSONObject(i)
+                        if (asset.optString("name").endsWith(".apk")) { apk = asset.optString("browser_download_url"); break }
+                    }
+                    Pair(tag, apk)
+                } finally { connection.disconnect() }
+            }
+            val currentVersion = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0"
+            if (result.second.isBlank()) {
+                updateMessage = "Versão publicada sem APK disponível"
+                updateUrl = null
+            } else if (result.first.removePrefix("v") == currentVersion) {
+                updateMessage = "Você já usa a versão $currentVersion"
+                updateUrl = null
+            } else {
+                updateMessage = "Versão ${result.first} disponível — toque para baixar"
+                updateUrl = result.second
+            }
+        } catch (e: Exception) {
+            updateMessage = "Não foi possível verificar: ${e.message}"
+            updateUrl = null
+        } finally { checking = false }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1815,7 +1863,16 @@ fun SettingsScreen() {
                     icon = Icons.Default.CloudDownload,
                     tint = MintGreen,
                     title = "Versão do aplicativo",
-                    subtitle = "Atualizar para a versão mais recente"
+                    subtitle = updateMessage,
+                    onClick = {
+                        val url = updateUrl
+                        if (url != null) {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                        } else if (!checking) {
+                            updateMessage = "Verificando..."
+                            checking = true
+                        }
+                    }
                 )
                 Divider(color = BorderGrey, modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsListItem(
@@ -1834,12 +1891,13 @@ fun SettingsListItem(
     icon: ImageVector,
     tint: Color,
     title: String,
-    subtitle: String
+    subtitle: String,
+    onClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable(onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
