@@ -40,6 +40,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -224,6 +225,43 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                     )
                 )
         ) {
+            // Render the luminous scene on its own blurred GPU layer so the
+            // transparent surfaces above it stay crisp and interactive.
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            renderEffect = androidx.compose.ui.graphics.BlurEffect(
+                                54f, 54f, androidx.compose.ui.graphics.TileMode.Decal
+                            )
+                        }
+                    }
+            ) {
+                Box(
+                    Modifier
+                        .size(260.dp)
+                        .offset(x = (-95).dp, y = 70.dp)
+                        .background(
+                            Brush.radialGradient(
+                                listOf(Color(0x995BAFFF), Color.Transparent)
+                            ),
+                            CircleShape
+                        )
+                )
+                Box(
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(300.dp)
+                        .offset(x = 95.dp, y = 30.dp)
+                        .background(
+                            Brush.radialGradient(
+                                listOf(Color(0x886A74E8), Color.Transparent)
+                            ),
+                            CircleShape
+                        )
+                )
+            }
             if (!hasGrantedPermissions) {
                 PermissionRequiredScreen {
                     permissionLauncher.launch(permissionsToRequest)
