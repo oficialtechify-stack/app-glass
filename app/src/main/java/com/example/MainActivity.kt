@@ -67,15 +67,15 @@ import java.util.Date
 import java.util.Locale
 
 // Custom modern Dark Theme colors matching the premium glasses branding (Immersive UI)
-private val CarbonBackground = Color(0xFF111318)
-private val SlateCard = Color(0xFF1D2024)
-private val BorderGrey = Color(0xFF43474E)
-private val TechBlue = Color(0xFFD0E4FF)
+private val CarbonBackground = Color(0xFF0B1220)
+private val SlateCard = Color(0xFF25344B)
+private val BorderGrey = Color(0xFF52657E)
+private val TechBlue = Color(0xFF9DD5FF)
 private val MintGreen = Color(0xFF10B981)
 private val HotCoral = Color(0xFF910002)
 private val GoldenYellow = Color(0xFFF59E0B)
 private val LightGrey = Color(0xFFE2E2E6)
-private val TextMuted = Color(0xFF8E9199)
+private val TextMuted = Color(0xFFB4C1D2)
 
 private val AppDarkColorScheme = darkColorScheme(
     primary = TechBlue,
@@ -91,10 +91,10 @@ private val AppDarkColorScheme = darkColorScheme(
 )
 
 enum class AppTab(val title: String, val iconFilled: ImageVector, val iconOutlined: ImageVector) {
-    Home("Pagina inicial", Icons.Filled.Home, Icons.Outlined.Home),
-    AI("AI", Icons.Filled.ChatBubble, Icons.Outlined.ChatBubbleOutline),
-    Album("Álbum de fo...", Icons.Filled.PhotoLibrary, Icons.Outlined.PhotoLibrary),
-    Me("Meu", Icons.Filled.Person, Icons.Outlined.Person)
+    Home("Início", Icons.Filled.Home, Icons.Outlined.Home),
+    AI("Assistente", Icons.Filled.ChatBubble, Icons.Outlined.ChatBubbleOutline),
+    Album("Galeria", Icons.Filled.PhotoLibrary, Icons.Outlined.PhotoLibrary),
+    Me("Ajustes", Icons.Filled.Person, Icons.Outlined.Person)
 }
 
 class MainActivity : ComponentActivity() {
@@ -165,8 +165,8 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
         bottomBar = {
             NavigationBar(
                 containerColor = SlateCard,
-                tonalElevation = 8.dp,
-                modifier = Modifier.border(1.dp, BorderGrey, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                tonalElevation = 2.dp,
+                modifier = Modifier.border(1.dp, BorderGrey, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
             ) {
                 AppTab.values().forEach { tab ->
                     val selected = currentTab == tab
@@ -189,7 +189,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                             )
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = TechBlue.copy(alpha = 0.15f)
+                            indicatorColor = TechBlue.copy(alpha = 0.25f)
                         ),
                         modifier = Modifier.testTag("nav_tab_${tab.name.lowercase()}")
                     )
@@ -204,7 +204,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
                 .padding(innerPadding)
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(CarbonBackground, Color(0xFF0F121A))
+                        colors = listOf(Color(0xFF1A3050), CarbonBackground, Color(0xFF090D17))
                     )
                 )
         ) {
