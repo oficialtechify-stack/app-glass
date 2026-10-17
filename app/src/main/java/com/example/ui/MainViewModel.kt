@@ -120,89 +120,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return bleManager.hasRequiredPermissions()
     }
 
-    // Photo trigger
+    // Proprietary camera commands have not been validated against RDGlass.
+    // Never fabricate photos or videos in the user's album.
     fun triggerPhoto(byteVal: Byte) {
         viewModelScope.launch {
-            // Send BLE pulse
-            bleManager.sendByteCommand(byteVal)
-            
-            // Simulate capturing and saving photo to Album
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-            val title = "Foto Tirada " + dateFormat.format(Date())
-            
-            // Random index for visual design asset placeholder
-            val photoId = (1..5).random()
-            val dummyPath = "https://picsum.photos/seed/glass_photo_$photoId/400/300"
-            
-            db.albumDao().insertItem(
-                AlbumItem(
-                    title = title,
-                    type = "photo",
-                    filePath = dummyPath
-                )
-            )
-            
-            db.bleLogDao().insertLog(
-                BleLog(
-                    tag = "ALBUM",
-                    text = "Foto adicionada ao Álbum com sucesso.",
-                    type = "success"
-                )
-            )
+            db.bleLogDao().insertLog(BleLog(tag = "CÂMERA", text = "Captura indisponível: protocolo da câmera ainda não validado. Nenhuma foto foi criada.", type = "warning"))
         }
     }
 
-    // Video record triggers
     fun startVideoRecording(byteVal: Byte) {
         viewModelScope.launch {
-            bleManager.sendByteCommand(byteVal)
-            _isRecording.value = true
-            recordingStartTime = System.currentTimeMillis()
-            
-            db.bleLogDao().insertLog(
-                BleLog(
-                    tag = "GRAVAÇÃO",
-                    text = "Gravação de vídeo iniciada.",
-                    type = "info"
-                )
-            )
+            _isRecording.value = false
+            db.bleLogDao().insertLog(BleLog(tag = "GRAVAÇÃO", text = "Gravação indisponível: protocolo de vídeo ainda não validado.", type = "warning"))
         }
     }
 
     fun stopVideoRecording(byteVal: Byte) {
-        viewModelScope.launch {
-            if (!_isRecording.value) return@launch
-            bleManager.sendByteCommand(byteVal)
-            _isRecording.value = false
-            
-            val durationMs = System.currentTimeMillis() - recordingStartTime
-            val seconds = (durationMs / 1000) % 60
-            val minutes = (durationMs / (1000 * 60)) % 60
-            val durationString = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-            
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-            val title = "Vídeo Gravado " + dateFormat.format(Date())
-            
-            val videoId = (1..5).random()
-            val dummyPath = "https://picsum.photos/seed/glass_video_$videoId/400/300"
-
-            db.albumDao().insertItem(
-                AlbumItem(
-                    title = title,
-                    type = "video",
-                    filePath = dummyPath,
-                    duration = durationString
-                )
-            )
-            
-            db.bleLogDao().insertLog(
-                BleLog(
-                    tag = "ALBUM",
-                    text = "Vídeo de $durationString adicionado ao Álbum.",
-                    type = "success"
-                )
-            )
-        }
+        _isRecording.value = false
     }
 
     // Database cleaner utilities
