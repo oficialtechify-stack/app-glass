@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.smartglass.vaxntq"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1)
+    versionName = "1.0-" + (System.getenv("GITHUB_RUN_NUMBER") ?: "local")
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
