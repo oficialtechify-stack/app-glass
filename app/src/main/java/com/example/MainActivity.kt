@@ -187,7 +187,7 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = Color(0xD528405F),
+                containerColor = Color.Transparent,
                 tonalElevation = 0.dp,
                 modifier = Modifier
                     .hazeGlass(
@@ -232,9 +232,9 @@ fun MainScreen(viewModel: MainViewModel = viewModel()) {
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+                 .fillMaxSize()
                 .hazeSource(glassState)
+                .padding(innerPadding)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(Color(0xFF315B87), Color(0xFF172B48), Color(0xFF090D17))
