@@ -28,6 +28,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
+      - name: Install Android 37 platform (dev channel)
+        # compileSdk 37: a plataforma android-37.0 ainda não está no canal
+        # estável do SDK (só no Dev, --channel=2). Sem este passo o CI
+        # falha no checkDebugAarMetadata como o build local falhava antes.
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --channel=2 "platforms;android-37.0" "build-tools;37.0.0"
       - name: Validate Kotlin and unit tests
         run: gradle :app:compileDebugKotlin :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
