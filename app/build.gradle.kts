@@ -11,6 +11,9 @@ plugins {
 
 android {
   namespace = "com.example"
+  // compileSdk 37: plataforma instalada do canal Dev do sdkmanager
+  // (platforms;android-37.0, 07/11/2026) — as dependências (Haze 2.0.0,
+  // Compose 1.12.0) exigem compilar contra a API 37+. targetSdk continua 36.
   compileSdk = 37
 
   defaultConfig {
