@@ -27,6 +27,20 @@ android {
   }
 
   signingConfigs {
+    // CI: assinatura estável para o APK debug — o keystore vem dos secrets
+    // (KEYSTORE_PATH / STORE_PASSWORD / KEY_PASSWORD). Sem essas vars, o
+    // build local usa o debug keystore padrão como antes. Sem isso, cada
+    // release do CI sai com uma assinatura diferente e o Android bloqueia
+    // o update por cima (v1.0-37 → v1.0-47, 07/11/2026).
+    getByName("debug") {
+      val keystorePath = System.getenv("KEYSTORE_PATH")
+      if (!keystorePath.isNullOrBlank()) {
+        storeFile = file(keystorePath)
+        storePassword = System.getenv("STORE_PASSWORD")
+        keyAlias = "smartglass"
+        keyPassword = System.getenv("KEY_PASSWORD")
+      }
+    }
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
       storeFile = file(keystorePath)
