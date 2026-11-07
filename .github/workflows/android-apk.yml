@@ -17,6 +17,16 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Assinatura estável em TODOS os steps: as vars precisam existir já na
+    # PRIMEIRA configuração do Gradle. Antes elas só existiam no step de
+    # build — mas o step "Validate" roda o Gradle antes, sem elas, e o
+    # configuration-cache (org.gradle.configuration-cache=true) gravava a
+    # configuração com o debug keystore padrão; o assemble reutilizava o
+    # cache e a v1.0-49 saiu com uma terceira assinatura (07/11/2026).
+    env:
+      KEYSTORE_PATH: ${{ github.workspace }}/app/smartglass-signing.jks
+      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -34,24 +44,25 @@ jobs:
         # falha no checkDebugAarMetadata como o build local falhava antes.
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --channel=2 "platforms;android-37.0" "build-tools;37.0.0"
-      - name: Validate Kotlin and unit tests
-        run: gradle :app:compileDebugKotlin :app:testDebugUnitTest --stacktrace
       - name: Restore stable signing key
         # Keystore estável (alias smartglass) guardado nos secrets do repo.
         # Sem ele, cada runner gera um debug keystore novo e cada release
         # sai com uma assinatura diferente — o Android bloqueia o update
         # por cima (v1.0-37 → v1.0-47, 07/11/2026). Se o secret faltar,
         # o build falha aqui em vez de assinar com chave errada.
+        # Roda ANTES do Validate: o keystore precisa existir antes da
+        # primeira configuração do Gradle (ver o env do job acima).
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > app/smartglass-signing.jks
+      - name: Validate Kotlin and unit tests
+        run: gradle :app:compileDebugKotlin :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
-        env:
-          KEYSTORE_PATH: ${{ github.workspace }}/app/smartglass-signing.jks
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: gradle :app:assembleDebug --stacktrace
+        # --no-configuration-cache: cinto e suspensórios contra o bug da
+        # v1.0-49 — nenhuma configuração em cache pode reutilizar o
+        # signingConfig sem o keystore estável.
+        run: gradle :app:assembleDebug --no-configuration-cache --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: ai-glass-os-debug-apk
