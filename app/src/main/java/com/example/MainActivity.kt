@@ -373,6 +373,8 @@ fun HomeScreen(viewModel: MainViewModel) {
     val scannedDevices by viewModel.scannedDevices.collectAsStateWithLifecycle()
     val logs by viewModel.logs.collectAsStateWithLifecycle()
     val isRecording by viewModel.isRecording.collectAsStateWithLifecycle()
+    val batteryLevel by viewModel.batteryLevel.collectAsStateWithLifecycle()
+    val firmwareVersion by viewModel.firmwareVersion.collectAsStateWithLifecycle()
 
     var showScanDialog by remember { mutableStateOf(false) }
 
@@ -550,7 +552,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                                         color = TextMuted
                                     )
                                     Text(
-                                        text = "Firmware: indisponível",
+                                        text = "Firmware: ${firmwareVersion ?: "lendo…"}",
                                         fontSize = 11.sp,
                                         color = TextMuted
                                     )
@@ -565,7 +567,7 @@ fun HomeScreen(viewModel: MainViewModel) {
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            text = "Conectado • Bateria indisponível",
+                                            text = "Conectado • Bateria ${batteryLevel?.let { "$it%" } ?: "…"}",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = MintGreen
