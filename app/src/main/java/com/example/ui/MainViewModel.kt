@@ -43,6 +43,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // BLE manager flows
     val connectionState: StateFlow<ConnectionState> = bleManager.connectionState
     val scannedDevices = bleManager.scannedDevices
+    val batteryLevel: StateFlow<Int?> = bleManager.batteryLevel
+    val firmwareVersion: StateFlow<String?> = bleManager.firmwareVersion
 
     // AI Chat auxiliary state
     private val _isChatLoading = MutableStateFlow(false)
